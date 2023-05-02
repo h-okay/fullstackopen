@@ -36,9 +36,17 @@ cd part2/courseinfo && npm install && npm run start
 
 ### phonebook
 
-Has a developer depencecy on json-server
+Has a developer depencecy on json-server. Add `"server": "json-server -p3001 db.json"` to `package.json` scripts and run
 
 ```bash
 cd part2/phonebook && npm install && npm install json-server --save-dev && npm run server
 npm run start
+```
+
+### countries
+
+Create an .env file with the following content `REACT_APP_WEATHER_API_KEY=<YOUR_API_KEY>` then run
+
+```bash
+npm install && npm run start
 ```
