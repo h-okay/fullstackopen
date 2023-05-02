@@ -33,7 +33,6 @@ function App() {
           const { temp } = main;
           const { icon } = weather[0];
           const { speed } = wind;
-          console.log(weatherResponse);
           setWeatherInfo({ temp, icon, speed });
         });
     }
