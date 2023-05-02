@@ -39,7 +39,7 @@ cd part2/courseinfo && npm install && npm run start
 Has a developer depencecy on json-server. Add `"server": "json-server -p3001 db.json"` to `package.json` scripts and run
 
 ```bash
-cd part2/phonebook && npm install && npm install json-server --save-dev && npm run server
+npm install && npm install json-server --save-dev && npm run server
 npm run start
 ```
 
