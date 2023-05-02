@@ -1,0 +1,22 @@
+p {
+  margin: 0;
+}
+
+.entry:first-child {
+  margin-top: 10px;
+}
+
+.entry {
+  margin-right: 5px;
+}
+
+.name-in-entry {
+  font-weight: bold;
+  margin-right: 5px;
+  display: inline-block;
+}
+
+.button-in-entry {
+  margin-right: 5px;
+  display: inline-block;
+}
