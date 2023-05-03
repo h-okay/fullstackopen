@@ -36,7 +36,7 @@ cd part2/courseinfo && npm install && npm run start
 
 ### phonebook
 
-Has a developer depencecy on json-server. Add `"server": "json-server -p3001 db.json"` to `package.json` scripts and run
+Has a developer dependency of json-server. Add `"server": "json-server -p3001 db.json"` to `package.json` scripts and run
 
 ```bash
 npm install && npm install json-server --save-dev && npm run server
