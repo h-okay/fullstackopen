@@ -16,6 +16,8 @@ const App = () => {
     });
   }, []);
 
+  console.log(notes);
+
   if (!notes) {
     return null;
   }
