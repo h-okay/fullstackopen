@@ -35,7 +35,7 @@ const App = () => {
 
   const handleNotification = (message) => {
     setNotification(message);
-    setTimeout(() => setNotification(null), 2000);
+    setTimeout(() => setNotification(null), 3500);
   };
 
   const addPerson = (event) => {
@@ -43,7 +43,6 @@ const App = () => {
     const newPerson = {
       name: newName,
       number: newNumber,
-      id: persons.length + 1,
     };
     if (exists) {
       if (
@@ -52,16 +51,22 @@ const App = () => {
         )
       ) {
         const person = persons.find((person) => person.name === newName);
-        updateNumber(person.id, newNumber);
+        updateNumber(person.id);
         setNotifType("notification");
         handleNotification(`Updated ${newName}`);
       }
     } else {
-      phonebookService.create(newPerson).then((returnedPerson) => {
-        setPersons(persons.concat(returnedPerson));
-        setNotifType("error");
-        handleNotification(`Added ${newName}`);
-      });
+      phonebookService
+        .create(newPerson)
+        .then((returnedPerson) => {
+          setPersons(persons.concat(returnedPerson));
+          setNotifType("notification");
+          handleNotification(`Added ${newName}`);
+        })
+        .catch((error) => {
+          setNotifType("error");
+          handleNotification(error.response.data.error);
+        });
     }
     setNewName("");
     setNewNumber("");
@@ -96,12 +101,12 @@ const App = () => {
         setPersons(
           persons.map((person) => (person.id !== id ? person : returnedPerson))
         );
+        setNotifType("notification");
+        handleNotification(`Number for ${person.name} updated`);
       })
       .catch((error) => {
         setNotifType("error");
-        setNotification(
-          `The person ${person.name} was already deleted from the server`
-        );
+        handleNotification(error.response.data.error);
         setPersons(persons.filter((person) => person.id !== id));
       });
   };
