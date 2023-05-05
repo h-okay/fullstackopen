@@ -6,8 +6,8 @@ const MONGODB_URI = () => {
   return NODE_ENV === "test"
     ? process.env.TEST_MONGODB_URI
     : NODE_ENV === "development"
-      ? process.env.DEV_MONGODB_URI
-      : process.env.MONGODB_URI;
+    ? process.env.DEV_MONGODB_URI
+    : process.env.MONGODB_URI;
 };
 
 module.exports = {
