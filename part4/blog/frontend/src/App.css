@@ -1,0 +1,41 @@
+.error {
+  color: red;
+  background: lightgrey;
+  font-size: 20px;
+  border-style: solid;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.success {
+  color: green;
+  background: lightgrey;
+  font-size: 20px;
+  border-style: solid;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.blog {
+  padding-top: 10;
+  padding-left: 2;
+  border: 1px solid;
+  margin-bottom: 5;
+
+  .blogTitle {
+    font-size: 20;
+    font-weight: bold;
+  }
+
+  .blogContent {
+    font-size: 15;
+  }
+
+  .blogAuthor {
+    font-size: 15;
+    font-style: italic;
+    font-weight: normal;
+  }
+}
