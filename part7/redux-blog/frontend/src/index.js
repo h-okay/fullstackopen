@@ -6,10 +6,12 @@ import { Provider } from "react-redux";
 import notificationReducer from "./reducers/notificationReducer";
 import blogReducer from "./reducers/blogReducer";
 import userReducer from "./reducers/userReducer";
+import usersReducer from "./reducers/usersReducer";
 import statReducer from "./reducers/statReducer";
 
 const store = configureStore({
   reducer: {
+    users: usersReducer,
     stats: statReducer,
     user: userReducer,
     blogs: blogReducer,

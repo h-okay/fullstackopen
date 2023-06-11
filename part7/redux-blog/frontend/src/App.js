@@ -2,32 +2,35 @@ import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Blog from "./components/Blog";
 
+import { Link, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import BlogDetails from "./components/BlogDetails";
 import LoginForm from "./components/LoginForm";
 import NewBlog from "./components/NewBlog";
 import Notification from "./components/Notification";
 import Togglable from "./components/Togglable";
+import UserBlogs from "./components/UserBlogs";
+import NavMenu from "./components/NavMenu";
 import UserStats from "./components/UserStats";
-import User from "./components/User";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-
 import {
-  initialiazeBlogs,
   createNewBlog,
+  initialiazeBlogs,
   likeBlog,
   removeBlog,
 } from "./reducers/blogReducer";
-import { userLogin, userLogout, userLoad } from "./reducers/userReducer";
 import {
-  initializeStats,
-  incrementStat,
   decrementStat,
+  incrementStat,
+  initializeStats,
 } from "./reducers/statReducer";
+import { userLoad, userLogin, userLogout } from "./reducers/userReducer";
+import { initiliazeUsers } from "./reducers/usersReducer";
 
 const App = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user);
   const blogs = useSelector((state) => state.blogs);
   const stats = useSelector((state) => state.stats);
+  const users = useSelector((state) => state.users);
   const blogFormRef = useRef();
 
   useEffect(() => {
@@ -35,11 +38,15 @@ const App = () => {
   }, [dispatch]);
 
   useEffect(() => {
+    dispatch(initialiazeBlogs());
+  }, [dispatch]);
+
+  useEffect(() => {
     dispatch(initializeStats());
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch(initialiazeBlogs());
+    dispatch(initiliazeUsers());
   }, [dispatch]);
 
   const login = async (username, password) => {
@@ -86,19 +93,13 @@ const App = () => {
       <Router>
         <div>
           <div>
+            <NavMenu user={user} logout={logout} />
             <h2 style={{ display: "inline-block", paddingRight: "5px" }}>
               blogs
             </h2>
-            <Link to="/" style={{ paddingRight: "5px" }}>
-              blogs
-            </Link>
-            <Link to="/users">users</Link>
           </div>
           <Notification />
-          <div>
-            {user.name} logged in
-            <button onClick={logout}>logout</button>
-          </div>
+
           <Togglable buttonLabel="new note" ref={blogFormRef}>
             <NewBlog createBlog={createBlog} />
           </Togglable>
@@ -124,11 +125,12 @@ const App = () => {
             path="/users"
             element={
               <div>
-                <UserStats stats={stats} />
+                <UserStats stats={stats} users={users} />
               </div>
             }
           />
-          <Route path="/users/:id" element={<User />} />
+          <Route path="/users/:id" element={<UserBlogs />} />
+          <Route path="/blogs/:id" element={<BlogDetails like={like} />} />
         </Routes>
       </Router>
     </div>

@@ -9,6 +9,11 @@ router.get("/", async (request, response) => {
   response.json(blogs);
 });
 
+router.get("/:id", async (request, response) => {
+  const blog = await Blog.findById(request.params.id).populate("user");
+  response.json(blog);
+});
+
 router.post("/", userExtractor, async (request, response) => {
   const { title, author, url, likes } = request.body;
   const blog = new Blog({

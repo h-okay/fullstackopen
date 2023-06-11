@@ -1,6 +1,6 @@
-import { Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-const Users = ({ users }) => {
+const Users = ({ stats, users }) => {
   return (
     <>
       <h2>User Stats</h2>
@@ -12,14 +12,12 @@ const Users = ({ users }) => {
           </tr>
         </thead>
         <tbody>
-          {Object.entries(users).map(([key, value]) => (
-            <tr key={key}>
+          {users.map((user) => (
+            <tr key={user.id}>
               <td>
-                <Navigate to={`/users/${key}`} style={{ paddingRight: "5px" }}>
-                  {key}
-                </Navigate>
+                <Link to={`/users/${user.id}`}>{user.name}</Link>
               </td>
-              <td>{value}</td>
+              <td>{stats[user.name]}</td>
             </tr>
           ))}
         </tbody>

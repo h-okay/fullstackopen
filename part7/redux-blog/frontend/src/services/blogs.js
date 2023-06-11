@@ -32,4 +32,9 @@ const remove = async (id, user) => {
   });
 };
 
-export default { getAll, create, update, remove };
+const getOne = async (id) => {
+  const request = await axios.get(`${baseUrl}/${id}`);
+  return request.data;
+};
+
+export default { getAll, create, update, remove, getOne };
