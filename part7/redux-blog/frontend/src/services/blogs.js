@@ -37,4 +37,27 @@ const getOne = async (id) => {
   return request.data;
 };
 
-export default { getAll, create, update, remove, getOne };
+const getComments = async (id) => {
+  const request = await axios.get(`${baseUrl}/${id}/comments`);
+  return request.data;
+};
+
+const addComment = async (id, comment) => {
+  const request = await axios.post(`${baseUrl}/${id}/comments`, comment);
+  return request.data;
+};
+
+const deleteComment = async (id, commentId) => {
+  await axios.delete(`${baseUrl}/${id}/comments/${commentId}`);
+};
+
+export default {
+  getAll,
+  create,
+  update,
+  remove,
+  getOne,
+  getComments,
+  addComment,
+  deleteComment,
+};

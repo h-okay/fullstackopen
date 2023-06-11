@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const Blog = require("../models/blog");
+const Comment = require("../models/comment");
 
 const { userExtractor } = require("../utils/middleware");
 
@@ -69,6 +70,37 @@ router.delete("/:id", userExtractor, async (request, response) => {
   await user.save();
   await blog.remove();
 
+  response.status(204).end();
+});
+
+router.get("/:id/comments", async (request, response) => {
+  const blog = await Blog.findById(request.params.id);
+  const comments = blog.comments;
+  const commentObjects = await Promise.all(
+    comments.map(async (c) => {
+      const comment = await Comment.findById(c);
+      return comment;
+    })
+  );
+  response.json(commentObjects);
+});
+
+router.post("/:id/comments", async (request, response) => {
+  const { content } = request.body;
+  const blog = await Blog.findById(request.params.id);
+  const commentObject = new Comment({ content: content });
+  const savedComment = await commentObject.save();
+  blog.comments = blog.comments.concat(savedComment._id);
+  await blog.save();
+  response.status(201).json(savedComment);
+});
+
+router.delete("/:id/comments/:commentId", async (request, response) => {
+  const { id, commentId } = request.params;
+  const blog = await Blog.findById(id);
+  blog.comments = blog.comments.filter((c) => c.toString() !== commentId);
+  await blog.save();
+  await Comment.findByIdAndDelete(commentId);
   response.status(204).end();
 });
 

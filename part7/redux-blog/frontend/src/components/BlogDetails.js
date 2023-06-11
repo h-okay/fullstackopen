@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import blogService from "../services/blogs";
+import Comments from "./Comments";
 
 const BlogDetails = ({ like }) => {
   const [blog, setBlog] = useState(null);
@@ -8,12 +9,8 @@ const BlogDetails = ({ like }) => {
 
   useEffect(() => {
     const fetchBlogDetails = async () => {
-      try {
-        const fetchedBlog = await blogService.getOne(id);
-        setBlog(fetchedBlog);
-      } catch (error) {
-        console.log("Error fetching blog details:", error);
-      }
+      const fetchedBlog = await blogService.getOne(id);
+      setBlog(fetchedBlog);
     };
 
     fetchBlogDetails();
@@ -24,15 +21,19 @@ const BlogDetails = ({ like }) => {
   }
 
   return (
-    <div>
-      <h1>{blog.title}</h1>
-      <p>{blog.url}</p>
+    <>
       <div>
-        <p>{blog.likes} likes</p>
-        <button onClick={() => like(blog)}>Like</button>
+        <h1>{blog.title}</h1>
+        <p>{blog.url}</p>
+        <div>
+          <p>{blog.likes} likes</p>
+          <button onClick={() => like(blog)}>Like</button>
+        </div>
+        <p>{"Added by " + blog.user.name}</p>
       </div>
-      <p>{"Added by " + blog.user.name}</p>
-    </div>
+      <h2>Comments</h2>
+      <Comments blogId={blog.id} />
+    </>
   );
 };
 

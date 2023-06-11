@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Blog from "./components/Blog";
 
-import { Link, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import BlogDetails from "./components/BlogDetails";
 import LoginForm from "./components/LoginForm";
 import NewBlog from "./components/NewBlog";
@@ -31,6 +31,7 @@ const App = () => {
   const blogs = useSelector((state) => state.blogs);
   const stats = useSelector((state) => state.stats);
   const users = useSelector((state) => state.users);
+  const comments = useSelector((state) => state.comments);
   const blogFormRef = useRef();
 
   useEffect(() => {
