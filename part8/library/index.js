@@ -111,7 +111,7 @@ const typeDefs = `
 const resolvers = {
   Query: {
     authorCount: () => authors.length,
-    allAuthors: () => authors,
+    allAuthors: () => authors.sort((a, b) => a.name - b.name),
     bookCount: () => books.length,
     allBooks: (root, args) =>
       args.author || args.genre
@@ -157,7 +157,10 @@ const resolvers = {
       const author = authors.find((a) => a.name === args.name);
       if (!author) return null;
       const updatedAuthor = { ...author, born: args.setBornTo };
-      authors = authors.concat(updatedAuthor);
+      authors = authors
+        .filter((a) => a.name !== args.name)
+        .concat(updatedAuthor)
+        .sort((a, b) => a.name - b.name);
       return updatedAuthor;
     },
   },
