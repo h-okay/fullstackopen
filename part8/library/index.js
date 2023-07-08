@@ -2,84 +2,21 @@ const { ApolloServer } = require("@apollo/server");
 const { startStandaloneServer } = require("@apollo/server/standalone");
 const { v1: uuid } = require("uuid");
 const { GraphQLError } = require("graphql");
+require("dotenv").config();
 
-let authors = [
-  {
-    name: "Robert Martin",
-    id: "afa51ab0-344d-11e9-a414-719c6709cf3e",
-    born: 1952,
-  },
-  {
-    name: "Martin Fowler",
-    id: "afa5b6f0-344d-11e9-a414-719c6709cf3e",
-    born: 1963,
-  },
-  {
-    name: "Fyodor Dostoevsky",
-    id: "afa5b6f1-344d-11e9-a414-719c6709cf3e",
-    born: 1821,
-  },
-  {
-    name: "Joshua Kerievsky", // birthyear not known
-    id: "afa5b6f2-344d-11e9-a414-719c6709cf3e",
-  },
-  {
-    name: "Sandi Metz", // birthyear not known
-    id: "afa5b6f3-344d-11e9-a414-719c6709cf3e",
-  },
-];
+const mongoose = require("mongoose");
+mongoose.set("strictQuery", false);
+const Author = require("./models/author");
+const Book = require("./models/book");
 
-let books = [
-  {
-    title: "Clean Code",
-    published: 2008,
-    author: "Robert Martin",
-    id: "afa5b6f4-344d-11e9-a414-719c6709cf3e",
-    genres: ["refactoring"],
-  },
-  {
-    title: "Agile software development",
-    published: 2002,
-    author: "Robert Martin",
-    id: "afa5b6f5-344d-11e9-a414-719c6709cf3e",
-    genres: ["agile", "patterns", "design"],
-  },
-  {
-    title: "Refactoring, edition 2",
-    published: 2018,
-    author: "Martin Fowler",
-    id: "afa5de00-344d-11e9-a414-719c6709cf3e",
-    genres: ["refactoring"],
-  },
-  {
-    title: "Refactoring to patterns",
-    published: 2008,
-    author: "Joshua Kerievsky",
-    id: "afa5de01-344d-11e9-a414-719c6709cf3e",
-    genres: ["refactoring", "patterns"],
-  },
-  {
-    title: "Practical Object-Oriented Design, An Agile Primer Using Ruby",
-    published: 2012,
-    author: "Sandi Metz",
-    id: "afa5de02-344d-11e9-a414-719c6709cf3e",
-    genres: ["refactoring", "design"],
-  },
-  {
-    title: "Crime and punishment",
-    published: 1866,
-    author: "Fyodor Dostoevsky",
-    id: "afa5de03-344d-11e9-a414-719c6709cf3e",
-    genres: ["classic", "crime"],
-  },
-  {
-    title: "The Demon ",
-    published: 1872,
-    author: "Fyodor Dostoevsky",
-    id: "afa5de04-344d-11e9-a414-719c6709cf3e",
-    genres: ["classic", "revolution"],
-  },
-];
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log("connected to MongoDB");
+  })
+  .catch((error) => {
+    console.log("error connecting to MongoDB:", error.message);
+  });
 
 const typeDefs = `
   type Author {
@@ -90,16 +27,16 @@ const typeDefs = `
 
   type Book {
     title: String!
-    author: String!
+    author: Author!
     published: Int!
     genres: [String!]!
   }
 
   type Query {
-      authorCount: Int!
-      bookCount: Int!
-      allBooks(author: String, genre: String): [Book]!
-      allAuthors: [Author]!
+    authorCount: Int!
+    bookCount: Int!
+    allBooks(author: String, genre: String): [Book]!
+    allAuthors: [Author]!
   }
 
   type Mutation {
@@ -110,58 +47,99 @@ const typeDefs = `
 
 const resolvers = {
   Query: {
-    authorCount: () => authors.length,
-    allAuthors: () => authors.sort((a, b) => a.name - b.name),
-    bookCount: () => books.length,
-    allBooks: (root, args) =>
-      args.author || args.genre
-        ? books.filter(
-            (book) =>
-              (args.author && book.author === args.author) ||
-              (args.genre && book.genres.includes(args.genre))
-          )
-        : books,
+    authorCount: async () => Author.collection.countDocuments(),
+    allAuthors: async () => Author.find({}),
+    bookCount: async () => Book.collection.countDocuments(),
+    allBooks: async (root, args) => {
+      if (!args.author && !args.genre) {
+        return Book.find({});
+      }
+
+      const filter = {};
+      if (args.author) {
+        filter["author.name"] = args.author;
+      }
+      if (args.genre) {
+        filter["genres"] = { $in: [args.genre] };
+      }
+      return Book.find(filter);
+    },
   },
   Author: {
     name: (root) => root.name,
     born: (root) => root.born,
-    bookCount: (root) =>
-      books.filter((book) => book.author === root.name).length,
+    bookCount: async (root) => {
+      const books = await Book.find({ author: root._id });
+      return books.length;
+    },
   },
   Book: {
     title: (root) => root.title,
     published: (root) => root.published,
-    author: (root) => root.author,
     genres: (root) => root.genres,
+    author: async (root) => {
+      return Author.findById(root.author);
+    },
   },
   Mutation: {
-    addBook: (root, args) => {
-      const exist = books.find(
-        (b) => b.title === args.title && b.author === args.author
-      );
-      if (exist) {
-        throw new GraphQLError("Book already exists", {
+    addBook: async (root, args) => {
+      try {
+        const author = await Author.findOne({ name: args.author });
+
+        if (author) {
+          const newBook = new Book({ ...args, author: author._id });
+          await newBook.save();
+          return newBook;
+        }
+      } catch (authorError) {
+        const errorInfo = Object.values(authorError.errors)[0];
+        const errorMessage = `Author ${errorInfo.path} must be at least ${errorInfo.properties.minlength} characters long`;
+        throw new GraphQLError(errorMessage, {
           code: "BAD_USER_INPUT",
-          invalidArgs: args.title,
+          invalidArgs: errorInfo.path,
         });
       }
-      const newBook = { ...args, id: uuid() };
-      books = books.concat(newBook);
-      if (!authors.find((author) => author.name === args.author)) {
-        const newAuthor = { name: args.author, id: uuid() };
-        authors = authors.concat(newAuthor);
+
+      try {
+        const newAuthor = new Author({ name: args.author });
+        await newAuthor.save();
+        const bookWithNewAuthor = new Book({ ...args, author: newAuthor._id });
+        await bookWithNewAuthor.save();
+        return bookWithNewAuthor;
+      } catch (bookError) {
+        const errorInfo = Object.values(bookError.errors)[0];
+        const errorMessage = `Book ${errorInfo.path} must be at least ${errorInfo.properties.minlength} characters long`;
+        throw new GraphQLError(errorMessage, {
+          code: "BAD_USER_INPUT",
+          invalidArgs: errorInfo.path,
+        });
       }
-      return newBook;
     },
-    editAuthor: (root, args) => {
-      const author = authors.find((a) => a.name === args.name);
-      if (!author) return null;
-      const updatedAuthor = { ...author, born: args.setBornTo };
-      authors = authors
-        .filter((a) => a.name !== args.name)
-        .concat(updatedAuthor)
-        .sort((a, b) => a.name - b.name);
-      return updatedAuthor;
+    editAuthor: async (root, args) => {
+      try {
+        const author = await Author.findOne({ name: args.name });
+        if (!author) return null;
+
+        author.born = args.setBornTo;
+        await author.save();
+
+        return author;
+      } catch (error) {
+        if (error.name === "ValidationError") {
+          const validationErrors = Object.values(error.errors).reduce(
+            (errors, err) => {
+              errors[err.path] = err.message;
+              return errors;
+            },
+            {}
+          );
+          throw new GraphQLError("Validation Error", {
+            code: "BAD_USER_INPUT",
+            validationErrors,
+            invalidArgs: args,
+          });
+        }
+      }
     },
   },
 };
